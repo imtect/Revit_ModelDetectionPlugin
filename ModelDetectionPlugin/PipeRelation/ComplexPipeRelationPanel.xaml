@@ -1,0 +1,59 @@
+﻿<Window
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ModelDetectionPlugin"
+             xmlns:System="clr-namespace:System;assembly=mscorlib" x:Class="ModelDetectionPlugin.ComplexPipeRelationPanel"
+             mc:Ignorable="d" Height="250" Width="500" Title="复杂流向设置面板">
+    <Grid Margin="0,0,0,-6">
+        <StackPanel HorizontalAlignment="Left" Width="490" Height="215" VerticalAlignment="Top">
+            <ListView x:Name="SettingListView" Height="185">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="序号" Width="50" DisplayMemberBinding="{Binding Path= ID}"/>
+                        <GridViewColumn Header="管道ID" Width="80" DisplayMemberBinding="{Binding Path= Code}"/>
+                        <GridViewColumn Header="操作" Width="100">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button x:Name="OperateBtn" Content="选择初始管道" Click="OperateBtn_Click" Width="90" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="子系统名称" Width="120">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ComboBox x:Name="SubSysteCombox" SelectionChanged="SubSysteCombox_SelectionChanged" Width="110" SelectedIndex="0" >
+                                        <System:String>空调机房</System:String>
+                                        <System:String>空调冷热水供水</System:String>
+                                        <System:String>空调冷热水回水</System:String>
+                                        <System:String>新风</System:String>
+                                        <System:String>排风</System:String>
+                                        <System:String>空调机房-楼层</System:String>
+                                        <System:String>生活给水</System:String>
+                                        <System:String>生活热水给水</System:String>
+                                    </ComboBox>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="流向方向" Width="120">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ComboBox x:Name="DirectionCombox" SelectionChanged="DirectionCombox_SelectionChanged"  Width="100" SelectedIndex="0">
+                                        <System:String>正向</System:String>
+                                        <System:String>逆向</System:String>
+                                    </ComboBox>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+            <StackPanel Height="25" Orientation="Horizontal" Margin="0,2,0,0" Width="490" FlowDirection="RightToLeft">
+                <Button x:Name="OKBtn" Content="OK" HorizontalAlignment="Right" Width="70" Click="OKBtn_Click"/>
+                <Button x:Name="AddBtn" Content="Add" HorizontalAlignment="Right" Width="70" Click="AddBtn_Click" Margin="5,0,0,0"/>
+                <Button x:Name="DeleteBtn" Content="Delete" HorizontalAlignment="Right" Width="70" Click="DeleteBtn_Click" Margin="5,0,0,0"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>
