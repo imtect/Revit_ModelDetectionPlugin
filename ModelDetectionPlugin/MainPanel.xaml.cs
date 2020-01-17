@@ -35,8 +35,6 @@ namespace ModelDetectionPlugin {
             InitializeComponent();
         }
 
-
-
         public void Init(UIApplication uiapp) {
             m_uiApp = uiapp;
             m_uidoc = m_uiApp.ActiveUIDocument;
@@ -58,6 +56,7 @@ namespace ModelDetectionPlugin {
 
         }
 
+
         public void SetupDockablePane(DockablePaneProviderData data) {
             data.FrameworkElement = this as FrameworkElement;
             data.InitialState = new DockablePaneState();
@@ -68,7 +67,7 @@ namespace ModelDetectionPlugin {
             if (e.Source is System.Windows.Controls.TabControl) {
                 TabItem selectItem = ModelDetectionTabCtrl.SelectedItem as TabItem;
                 MtLog.message = selectItem.Header.ToString();
-                MessageContent.Content = MtLog.message;
+                if (MessageContent != null) MessageContent.Content = MtLog.message;
                 ChangeModule(selectItem);
             }
         }
@@ -78,7 +77,7 @@ namespace ModelDetectionPlugin {
             MtGlobals.DetectionModule module = (MtGlobals.DetectionModule)Enum.Parse(typeof(MtGlobals.DetectionModule), detectionModule);
             switch (module) {
                 case MtGlobals.DetectionModule.SpuriousConnection:
-                    //InitSpuriousConnect();
+                    InitSpuriousConnect();
                     break;
                 case MtGlobals.DetectionModule.Level:
                     InitLevel();
@@ -87,7 +86,7 @@ namespace ModelDetectionPlugin {
                     InitPipeRelation();
                     break;
                 case MtGlobals.DetectionModule.BasicInfo:
-                    InitBasicInfo();
+                    //InitBasicInfo();
                     break;
                 case MtGlobals.DetectionModule.Misc:
                     InitMisc();
@@ -99,6 +98,7 @@ namespace ModelDetectionPlugin {
 
         #region SpuriousConnect
         private void InitSpuriousConnect() {
+            if (m_spuriousConnection == null) return;
             m_spuriousConnection.IsRemoveFan = IsRemoveFan.IsChecked == true ? true : false;
             m_spuriousConnection.IsRemoveCondensorPipe = IsRemoveCondemserPipe.IsChecked == true ? true : false;
             m_spuriousConnection.IsRemoveAirDust = IsRemoveAirDuct.IsChecked == true ? true : false;
@@ -213,6 +213,7 @@ namespace ModelDetectionPlugin {
 
         List<System.Windows.Controls.CheckBox> m_ltCurSystemNames;
         private void InitLevel() {
+            if (m_level == null) return;
             m_ltCurSystemNames = new List<System.Windows.Controls.CheckBox>();
 
             SystemComboBox.ItemsSource = MtCommon.GetEnumAttributeNames(typeof(MtGlobals.SystemName));
@@ -306,6 +307,7 @@ namespace ModelDetectionPlugin {
 
         #region PipeRelation
         private void InitPipeRelation() {
+            if (m_pipeRelation == null) return;
             SubSystemNameComBox.ItemsSource = MtCommon.GetEnumAttributeNames(typeof(MtGlobals.EPSystem));
             m_pipeRelation.SystemName = SystemNameComBox.Text;
             m_pipeRelation.SubSystemName = SubSystemNameComBox.Text;
@@ -471,21 +473,22 @@ namespace ModelDetectionPlugin {
 
         #region BasicInfo
         private void InitBasicInfo() {
+            if (m_basicInfo == null) return;
             if (DistrictTextBox.Text != null)
                 m_basicInfo.District = DistrictTextBox.Text;
             if (BuildingTextBox.Text != null)
                 m_basicInfo.Building = BuildingTextBox.Text;
-            m_basicInfo.IsMarkPipeInfos = MarkPipeInfoCheckBox.IsChecked == true ? true : false;
+            // m_basicInfo.IsMarkPipeInfos = MarkPipeInfoCheckBox.IsChecked == true ? true : false;
 
-            if (DBFilePath.Text != null)
-                m_basicInfo.m_sqliteFilePath = DBFilePath.Text;
-            if (TableName_TextBox.Text != null)
-                m_basicInfo.m_tableName = TableName_TextBox.Text.ToString();
+            //if (DBFilePath.Text != null)
+            //    m_basicInfo.m_sqliteFilePath = DBFilePath.Text;
+            //if (TableName_TextBox.Text != null)
+            //    m_basicInfo.m_tableName = TableName_TextBox.Text.ToString();
 
-            m_basicInfo.m_isClassifyColorByDep = DepColorCheckBox.IsChecked == true ? true : false;
+            //m_basicInfo.m_isClassifyColorByDep = DepColorCheckBox.IsChecked == true ? true : false;
 
-            m_basicInfo.m_floorColor = MtCommon.TransToRevitColor(FloorColor_Btn.Background);
-            m_basicInfo.m_corridorColor = MtCommon.TransToRevitColor(CorridorColor_Btn.Background);
+            //m_basicInfo.m_floorColor = MtCommon.TransToRevitColor(FloorColor_Btn.Background);
+            //m_basicInfo.m_corridorColor = MtCommon.TransToRevitColor(CorridorColor_Btn.Background);
         }
 
         private void DistrictTextBox_TextChanged(object sender, TextChangedEventArgs e) {
@@ -508,13 +511,16 @@ namespace ModelDetectionPlugin {
             }
         }
 
-        private void MarkPipeInfoCheckBox_Click(object sender, RoutedEventArgs e) {
-            if (MarkPipeInfoCheckBox.IsChecked == true) {
-                m_basicInfo.IsMarkPipeInfos = true;
-            } else {
-                m_basicInfo.IsMarkPipeInfos = false;
-            }
+
+        private void CheckBasicInfo_Click(object sender, RoutedEventArgs e) {
+
+            m_basicInfo.SelMethod = MtGlobals.BasicInfoMethods.MarkBasicInfo;
+            m_basicInfoEventHandler.Raise();
+
+            MtLog.message = "Check BasicInfo Finished!";
+            MessageContent.Content = MtLog.message;
         }
+
 
         private void BasicInfo_Btn_Click(object sender, RoutedEventArgs e) {
 
@@ -544,22 +550,6 @@ namespace ModelDetectionPlugin {
         }
 
         #region FloorTag
-        private void OpenDB_Btn_Click(object sender, RoutedEventArgs e) {
-            OpenFileDialog fileDialog = new OpenFileDialog();
-            fileDialog.Multiselect = true;
-            fileDialog.Title = "请选择DB文件";
-            fileDialog.Filter = "db文件|*.db";
-            if (fileDialog.ShowDialog() == DialogResult.OK) {
-                string file = fileDialog.FileName;
-                DBFilePath.Text = file;
-                m_basicInfo.m_sqliteFilePath = file;
-            }
-        }
-
-        private void TableName_TextBox_TextChanged(object sender, TextChangedEventArgs e) {
-            m_basicInfo.m_tableName = TableName_TextBox.Text.ToString();
-        }
-
         private void WriteFloorData_Click(object sender, RoutedEventArgs e) {
             //m_basicInfo.SetData(m_uidoc.Document);
             InitBasicInfo();
@@ -574,28 +564,10 @@ namespace ModelDetectionPlugin {
             m_basicInfoEventHandler.Raise();
         }
 
-        private void FloorColor_Btn_Click(object sender, RoutedEventArgs e) {
-
-            ColorDialog colorDialog = new ColorDialog();
-            if (DialogResult.OK == colorDialog.ShowDialog()) {
-                SolidBrush sb = new SolidBrush(colorDialog.Color);
-                SolidColorBrush solidColorBrush = new SolidColorBrush(System.Windows.Media.Color.FromArgb(sb.Color.A, sb.Color.R, sb.Color.G, sb.Color.B));
-                FloorColor_Btn.Background = solidColorBrush;
-            }
-        }
 
         private void DepColorSelectBtn_Click(object sender, RoutedEventArgs e) {
             DepColorSettingPanel depColorSettingPanel = new DepColorSettingPanel();
             depColorSettingPanel.Show();
-        }
-
-        private void CorridorColor_Btn_Click(object sender, RoutedEventArgs e) {
-            ColorDialog colorDialog = new ColorDialog();
-            if (DialogResult.OK == colorDialog.ShowDialog()) {
-                SolidBrush sb = new SolidBrush(colorDialog.Color);
-                SolidColorBrush solidColorBrush = new SolidColorBrush(System.Windows.Media.Color.FromArgb(sb.Color.A, sb.Color.R, sb.Color.G, sb.Color.B));
-                CorridorColor_Btn.Background = solidColorBrush;
-            }
         }
 
         private void SetFloorColor_Btn_Click(object sender, RoutedEventArgs e) {
@@ -603,16 +575,6 @@ namespace ModelDetectionPlugin {
             InitBasicInfo();
             m_basicInfo.SelMethod = MtGlobals.BasicInfoMethods.SetDepColor;
             m_basicInfoEventHandler.Raise();
-        }
-
-        private void DepColorCheckBox_Click(object sender, RoutedEventArgs e) {
-            if (DepColorCheckBox.IsChecked == true) {
-                SetFloorColor_Btn.Content = "按科室配置颜色";
-                m_basicInfo.m_isClassifyColorByDep = true;
-            } else {
-                SetFloorColor_Btn.Content = "设置楼板颜色";
-                m_basicInfo.m_isClassifyColorByDep = false;
-            }
         }
 
         private void MarkFloorBtn_Click(object sender, RoutedEventArgs e) {
@@ -636,10 +598,13 @@ namespace ModelDetectionPlugin {
         #region Misc
 
         private void InitMisc() {
+            if (m_misc == null) return;
             if (tabelNameText.Text != null)
                 m_misc.TableName = tabelNameText.Text.ToString();
             if (columnNameText.Text != null)
                 m_misc.ColumnName = columnNameText.Text.ToString();
+            if (SystemCodeText.Text != null)
+                m_misc.m_SystemCode = SystemCodeText.Text.ToString();
         }
 
         private void OpenDB_Click(object sender, RoutedEventArgs e) {
@@ -652,6 +617,24 @@ namespace ModelDetectionPlugin {
                 MiscDBFilePath.Text = file;
                 m_misc.SqliteFilePath = file;
             }
+        }
+
+
+        //private void CampusInput_TextChanged(object sender, TextChangedEventArgs e) {
+        //    if (CampusInput.Text != null && m_misc != null) {
+        //        m_misc.CampusCode = CampusInput.Text.ToString();
+        //    }
+        //}
+
+        //private void SystemInput_TextChanged(object sender, TextChangedEventArgs e) {
+        //    if (SystemInput.Text != null && m_misc != null) {
+        //        m_misc.SystemCode = SystemInput.Text.ToString();
+        //    }
+        //}
+
+        private void EquipEncode_Click(object sender, RoutedEventArgs e) {
+            m_misc.SelMethod = MtGlobals.MiscMethods.EncodeEquipment;
+            m_miscEventHandler.Raise();
         }
 
         #endregion
@@ -678,6 +661,28 @@ namespace ModelDetectionPlugin {
 
         private void SameSystemCheck_Checked(object sender, RoutedEventArgs e) {
 
+        }
+
+        private void OpenPiameterBtn_Click(object sender, RoutedEventArgs e) {
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            fileDialog.Multiselect = true;
+            fileDialog.Title = "请选择DB文件";
+            fileDialog.Filter = "db文件|*.db";
+            if (fileDialog.ShowDialog() == DialogResult.OK) {
+                string file = fileDialog.FileName;
+                SqlitePathText.Text = file;
+                m_misc.SqliteFilePath = file;
+            }
+        }
+
+        private void PiameterBtn_Click(object sender, RoutedEventArgs e) {
+            m_misc.SelMethod = MtGlobals.MiscMethods.GetPipePiameter;
+            m_miscEventHandler.Raise();
+        }
+
+        private void SystemCodeText_TextChanged(object sender, TextChangedEventArgs e) {
+            if (SystemCodeText.Text != null && m_misc != null)
+                m_misc.m_SystemCode = SystemCodeText.Text.ToString();
         }
     }
 }

@@ -6,6 +6,7 @@ using Autodesk.Revit.DB.Plumbing;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.DB.Mechanical;
+using System;
 
 namespace ModelDetectionPlugin {
 
@@ -189,6 +190,7 @@ namespace ModelDetectionPlugin {
                 _columnValue[7] = "'" + GetSubsystemCode(subSystem) + "'"; //subsystemCode
                 _columnValue[8] = "'" + (IsEncodeDevice(info) ? 1 : 0).ToString() + "'"; //设备是否有编码
                 _columnValue[9] = "'" + "0" + "'"; //是否是末端管道
+                _columnValue[10] = ResetPipeId(m_startingElementNode, systemName, m_startingElementNode.Id.ToString());
 
                 if (isPositiveDir) {
                     _columnValue[4] = "1"; //DIRECTION 1:正向 0：逆向
@@ -349,13 +351,13 @@ namespace ModelDetectionPlugin {
             m_allTreeNodeList.Clear();
         }
 
-        public List<Element> TestCircuit(Element ele, bool isSameSystemName = true, string multiSystem = null, bool isIsolateElemnt = true) {
+        public List<Element> TestCircuit(Element ele, bool isSameSystemName = true, string multiSystem = null, bool isIsolateElemnt = true, Action<List<Element>> totalElements = null) {
             m_startingElementNode = GetStartingElementNode(ele);
-            return NoRecursionTravalPipe(m_startingElementNode, isSameSystemName, multiSystem, isIsolateElemnt);
+            return NoRecursionTravalPipe(m_startingElementNode, isSameSystemName, multiSystem, isIsolateElemnt, totalElements);
         }
 
 
-        private List<Element> NoRecursionTravalPipe(TreeNode eleNode, bool isSameSystemName = true, string multiSystem = null, bool isIsolateElemnt = true) {
+        private List<Element> NoRecursionTravalPipe(TreeNode eleNode, bool isSameSystemName = true, string multiSystem = null, bool isIsolateElemnt = true, Action<List<Element>> totalElements = null) {
             List<Element> errorListElemnts = new List<Element>();
             Queue<TreeNode> queue = new Queue<TreeNode>();
             queue.Enqueue(eleNode);
@@ -365,26 +367,13 @@ namespace ModelDetectionPlugin {
             List<string> systemNames = multiSystem.Split(';').ToList();
 
             while (queue.Count != 0) {
-                //string content = File.ReadAllText(filepath);
-                //content += index++ + ":   ";
-                //foreach (var que in queue) {
-                //    content += que.Id.ToString() + ", ";
-                //}
-                //content += "\r\n";
-                //MtCommon.WriteIntText(content);
-
                 TreeNode treeNode = queue.Dequeue();
-
                 List<TreeNode> childNodes = treeNode.ChildNodes;
                 Element selele = m_document.GetElement(treeNode.Id);
-
                 m_dicTree.Add(selele.Id.ToString(), treeNode);
-
                 ConnectorSet connectorSet = MtCommon.GetAllConnectors(selele);
-
                 foreach (Connector connector in connectorSet) {
                     MEPSystem mepSystem = connector.MEPSystem;
-
                     if (isSameSystemName) {
                         Element ele = m_document.GetElement(m_startingElementNode.Id);
                         if (ele.Category.Name.Equals("风道末端") || ele.Category.Name.Equals("风管管件") ||
@@ -400,7 +389,6 @@ namespace ModelDetectionPlugin {
                         //if (mepSystem == null || (mepSystem is MechanicalSystem) && (m_system is PipingSystem) || (mepSystem is PipingSystem) && (m_system is MechanicalSystem))
                         //    continue;
                     }
-
                     if (treeNode.Parent == null) {
                         if (connector.IsConnected) {
                             treeNode.Direction = connector.Direction;
@@ -411,7 +399,6 @@ namespace ModelDetectionPlugin {
                             continue;
                         }
                     }
-
                     Connector connectedConnector = MtCommon.GetConnectedConnector(connector);
                     if (connectedConnector != null) {
                         TreeNode node = new TreeNode(connectedConnector.Owner.Id);
@@ -425,8 +412,7 @@ namespace ModelDetectionPlugin {
 
                 childNodes.Sort(delegate (TreeNode t1, TreeNode t2) {
                     return t1.Id.IntegerValue > t2.Id.IntegerValue ? 1 : (t1.Id.IntegerValue < t2.Id.IntegerValue ? -1 : 0);
-                }
-                );
+                });
 
                 foreach (TreeNode item in childNodes) {
                     if (!m_dicTree.ContainsKey(item.Id.ToString())) {  //队列中包含该节点 ，则说明重复了
@@ -445,11 +431,9 @@ namespace ModelDetectionPlugin {
             foreach (TreeNode item in m_dicTree.Values) {
                 isolatedElemets.Add(m_document.GetElement(item.Id));
             }
-            if (isIsolateElemnt) //将元素隔离
-                IsolateElements(isolatedElemets);
-            else {
-                HideElements(isolatedElemets);
-            }
+
+            totalElements?.Invoke(isolatedElemets);
+
             return errorListElemnts;
         }
 
@@ -567,14 +551,6 @@ namespace ModelDetectionPlugin {
             if (node == null || string.IsNullOrEmpty(systemName) || string.IsNullOrEmpty(id))
                 return string.Empty;
 
-            //string[] infos = info.Split('*'); //[0] : 院区+建筑+楼层  [1]:设备Code
-            //if (!infos[1].Equals("Null")) {
-            //    return "'" + infos[1] + "'";  //设备编码不为空，则将设备编码作为该管道（其实是设备）的Code;
-            //} else {
-            //    return "'" + infos[0] + "_" + systemName + "_" + id + "'"; //普通管道则编码为院区-建筑-楼层_系统_ID;
-            //}
-
-
             string[] infos = node.Info.Split('*'); //[0] : 院区+建筑+楼层  [1]:是否是设备，0：不是，1是
             string buildName = infos[0].Substring(0, 10);
             string equipName = buildName + "-" + node.FamilyName + " " + node.TypeName + " [" + node.Id + "]";
@@ -589,19 +565,14 @@ namespace ModelDetectionPlugin {
         private string GetElementInfo(Element ele) {
             if (ele == null) return string.Empty;
 
-            string area = MtCommon.GetOneParameter(ele, MtCommon.GetStringValue(MtGlobals.Parameters.Distribute));
+            string area = MtCommon.GetOneParameter(ele, MtCommon.GetStringValue(MtGlobals.Parameters.Campus));
             string building = MtCommon.GetOneParameter(ele, MtCommon.GetStringValue(MtGlobals.Parameters.Building));
             string level = MtCommon.GetOneParameter(ele, MtCommon.GetStringValue(MtGlobals.Parameters.MtLevel));
-            //string equipmentCode = MtCommon.GetOneParameter(ele, MtCommon.GetStringValue(MtGlobals.Parameters.EquipmentCode));
+            string equipmentCode = MtCommon.GetOneParameter(ele, MtCommon.GetStringValue(MtGlobals.Parameters.EquipmentCode));
 
             string isEquip = "0";
+            if (!string.IsNullOrEmpty(equipmentCode)) isEquip = "1";
 
-            if (ele.Category.Name.Equals("机械设备")) {
-                string familyName = MtCommon.GetElementFamilyName(m_document, ele);
-                if (familyName.Contains("空调机组") || familyName.Contains("新风机组") || familyName.Contains("分集水器")) {
-                    isEquip = "1";
-                }
-            }
             return area + "-" + building + "-" + level + "*" + isEquip;
         }
 
@@ -614,21 +585,7 @@ namespace ModelDetectionPlugin {
                 return false;
         }
 
-        private void IsolateElements(ICollection<Element> elements) {
-            List<ElementId> eleIds = new List<ElementId>();
-            foreach (var item in elements) {
-                eleIds.Add(item.Id);
-            }
-            MtCommon.IsolateElements(m_document, eleIds);
-        }
-
-        private void HideElements(ICollection<Element> elements) {
-            List<ElementId> eleIds = new List<ElementId>();
-            foreach (var item in elements) {
-                eleIds.Add(item.Id);
-            }
-            MtCommon.HideElementsTemporary(m_document, eleIds);
-        }
+      
         #endregion
     }
 }

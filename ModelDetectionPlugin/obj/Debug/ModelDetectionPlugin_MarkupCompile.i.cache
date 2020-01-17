@@ -4,7 +4,7 @@
 library
 C#
 .cs
-E:\git\Revit_ModelCheckPlugin\ModelDetectionPlugin\obj\Debug\
+E:\RevitProject\ModelDetectionPlugin\ModelDetectionPlugin\obj\Debug\
 ModelDetectionPlugin
 none
 false
@@ -12,9 +12,9 @@ DEBUG;TRACE
 
 2-1687364881
 
-262143941944
-19-1240456616
+26-449490253
+19763800759
 MainPanel.xaml;PipeRelation\ComplexPipeRelationPanel.xaml;
 
-False
+True
 

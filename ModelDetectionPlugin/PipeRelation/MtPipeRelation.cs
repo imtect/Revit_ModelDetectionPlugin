@@ -13,8 +13,8 @@ namespace ModelDetectionPlugin {
 
         UIApplication m_uiApp;
         UIDocument m_uIDocument;
-        MEPSystem m_system;
-        Element m_selectedElement;
+        //MEPSystem m_system;
+        //Element m_selectedElement;
         MtGlobals.PipeRelationMethods m_selMethod;
         public MtGlobals.PipeRelationMethods SelMethod {
             set { m_selMethod = value; }
@@ -130,8 +130,11 @@ namespace ModelDetectionPlugin {
 
         Dictionary<string, PipeRelationError> m_dicPipeRelationError;
 
+        List<StartElementData> m_startElements;
+
         public MtPipeRelation() {
             m_dicPipeRelationError = new Dictionary<string, PipeRelationError>();
+            m_startElements = new List<StartElementData>();
         }
 
         public void Execute(UIApplication uiapp) {
@@ -145,7 +148,7 @@ namespace ModelDetectionPlugin {
                 case MtGlobals.PipeRelationMethods.None:
                     break;
                 case MtGlobals.PipeRelationMethods.CheckPipeRelation:
-                    TestLoopCircuit();
+                    TestMultiStartPipe();
                     break;
                 case MtGlobals.PipeRelationMethods.GetPipeRelation:
                     GetPipeRelationShip();
@@ -161,50 +164,19 @@ namespace ModelDetectionPlugin {
         }
 
         public void GetPipeRelationShip() {
-            GetSelectElementSystem();
-            OnTraversalTree();
-        }
-
-        public void GetSelectElementSystem() {
-            if (m_uIDocument != null) {
-                Selection selection = m_uIDocument.Selection;
-                ICollection<ElementId> selectionIds = selection.GetElementIds();
-
-                if (selectionIds.Count == 0)
-                    TaskDialog.Show("Error", "You haven't selected any element.");
-                else if (selectionIds.Count > 1) {
-                    TaskDialog.Show("Error", "You have selected more than one element.");
-                } else {
-                    try {
-                        foreach (var eleId in selectionIds) {
-                            m_selectedElement = m_uIDocument.Document.GetElement(eleId);
-                            m_system = ExtractMechanicalOrPipingSystem(m_selectedElement);
-
-                            if (m_system == null)
-                                TaskDialog.Show("Error", "The selected element does not belong to any well-connected mechanical or piping system. " +
-                                   "The sample will not support well-connected systems for the following reasons: " +
-                                   Environment.NewLine +
-                                   "- Some elements in a non-well-connected system may get lost when traversing the system in the " +
-                                   "direction of flow" + Environment.NewLine +
-                                   "- Flow direction of elements in a non-well-connected system may not be right");
-                        }
-                    } catch (Exception e) {
-                        throw new Exception(e.Message);
-                    }
-                }
+            GetElementSystem();
+            foreach (var item in m_startElements) {
+                OnTraversalTree(item);
             }
         }
 
-        public void OnTraversalTree(bool isSaveIntoDB = true) {
+        public void OnTraversalTree(StartElementData data, bool isSaveIntoDB = true) {
             try {
-                MtTravelsalTree tree = new MtTravelsalTree(m_uIDocument.Document, m_system);
-                tree.TraversePipe(m_selectedElement, m_isSameSystem, m_multiSystem);
-
+                MtTravelsalTree tree = new MtTravelsalTree(m_uIDocument.Document, data.System);
+                tree.TraversePipe(data.StartElement, m_isSameSystem, m_multiSystem);
                 if (isSaveIntoDB) {
-
                     string colName = string.Join(",", new string[] { m_systemName, m_subsystemName, m_tunnelName, m_tableName, m_columnName });
                     tree.SaveIntoDB(m_dbfilepath, colName, m_isPositiveDir, m_isWaterReturnPipe);
-
                     if (tree.IsHide) {
                         Document doc = m_uIDocument.Document;
                         tree.HideTraverseElement(doc);
@@ -213,19 +185,33 @@ namespace ModelDetectionPlugin {
                     Document doc = m_uIDocument.Document;
                     tree.HideTraverseElement(doc);
                 }
-
             } catch (Exception) {
                 TaskDialog.Show("Error", "不明所以！");
             }
         }
 
-        void TestLoopCircuit() {
-            m_dicPipeRelationError.Clear();
+        public void TestMultiStartPipe() {
+            GetElementSystem();
+            if (m_startElements.Count == 0) return;
+            List<Element> totalSelectElements = new List<Element>();
+            var index = 0;
+            foreach (var item in m_startElements) {
+                TestLoopCircuit(item, (eles) => {
+                    totalSelectElements = totalSelectElements.Union(eles).ToList();
+                    ++index;
+                    if (index == m_startElements.Count) {
+                        if (m_isIsolatedElments) MtCommon.IsolateElements(m_uIDocument.Document, totalSelectElements);
+                        else MtCommon.HideElements(m_uIDocument.Document, totalSelectElements);
+                    }
+                });
+            }
+        }
 
-            GetSelectElementSystem();
+        void TestLoopCircuit(StartElementData data, Action<List<Element>> totalElments = null) {
+            ClearErrorListView();
 
-            MtTravelsalTree tree = new MtTravelsalTree(m_uIDocument.Document, m_system);
-            List<Element> eles = tree.TestCircuit(m_selectedElement, m_isSameSystem, m_multiSystem, IsIsolatedElements);
+            MtTravelsalTree tree = new MtTravelsalTree(m_uIDocument.Document, data.System);
+            List<Element> eles = tree.TestCircuit(data.StartElement, m_isSameSystem, m_multiSystem, IsIsolatedElements, totalElments);
 
             if (eles != null && eles.Count != 0) {
                 foreach (var ele in eles) {
@@ -237,6 +223,27 @@ namespace ModelDetectionPlugin {
             SetErrorListView(pipeRelationErrors);
         }
 
+        public void GetElementSystem() {
+            m_startElements.Clear();
+            if (m_uIDocument != null) {
+                Selection selection = m_uIDocument.Selection;
+                ICollection<ElementId> selectionIds = selection.GetElementIds();
+                foreach (var eleId in selectionIds) {
+                    var startEle = m_uIDocument.Document.GetElement(eleId);
+                    StartElementData data = new StartElementData() {
+                        StartElement = startEle,
+                        System = ExtractMechanicalOrPipingSystem(startEle)
+                    };
+                    m_startElements.Add(data);
+                }
+            }
+        }
+
+        void ClearErrorListView() {
+            m_dicPipeRelationError.Clear();
+            IList<PipeRelationError> pipeRelationErrors = m_dicPipeRelationError.Select(v => v.Value).ToList();
+            SetErrorListView(pipeRelationErrors);
+        }
 
         public void SetErrorListView(ICollection<PipeRelationError> elementIds) {
             if (elementIds != null && elementIds.Count != 0) {
@@ -339,5 +346,10 @@ namespace ModelDetectionPlugin {
             }
             return system;
         }
+    }
+
+    public struct StartElementData {
+        public Element StartElement;
+        public MEPSystem System;
     }
 }

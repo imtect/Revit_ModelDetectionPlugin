@@ -77,6 +77,9 @@ namespace ModelDetectionPlugin {
             trans.Start();
 
             switch (m_selMethod) {
+                case MtGlobals.BasicInfoMethods.CheckBasicInfo:
+                    CheckBasicInfos();
+                    break;
                 case MtGlobals.BasicInfoMethods.MarkBasicInfo:
                     SetBasicInfos();
                     break;
@@ -105,6 +108,89 @@ namespace ModelDetectionPlugin {
             return string.Empty;
         }
 
+        #region CheckBasicInfo
+
+        public void CheckBasicInfos() {
+            m_ltBasicInfoErrors.Clear();
+            if (m_isMarkPipeInfos) {
+                CheckPipeBasicInfo();
+            } else {
+                CheckBuildingBasicInfo();
+            }
+            IList<BasicInfoError> errorList = m_ltBasicInfoErrors.Select(v => v.Value).ToList().OrderBy(v => (v.FamilyName + v.TypeName)).ToList();
+            SetErrorListView(errorList);
+        }
+
+
+        public void CheckPipeBasicInfo() {
+            ElementClassFilter instanceFilter = new ElementClassFilter(typeof(FamilyInstance));
+            ElementClassFilter hostFilter = new ElementClassFilter(typeof(HostObject));
+            LogicalOrFilter andFilter = new LogicalOrFilter(instanceFilter, hostFilter);
+
+            FilteredElementCollector collector = new FilteredElementCollector(m_uIDocument.Document);
+            collector.WherePasses(andFilter);
+
+            foreach (var ele in collector) {
+
+                CheckPipeParameters(ele);//是否有基础信息
+
+                string category = ele.Category.Name;
+                if (category.Equals(MtGlobals.PipeCategory) || category.Equals(MtGlobals.DustCategory)) {
+                    GetParameter(ele, MtCommon.GetStringValue(MtGlobals.Parameters.VerticalPipe)); //检测竖管是否有参数
+                } else if (category.Equals(MtGlobals.EquipmentCategory)) {
+                    if (ele.Name.Contains("风盘") || ele.Name.Contains("风机盘管")) continue;
+                    GetParameter(ele, MtCommon.GetStringValue(MtGlobals.Parameters.EquipmentCode)); //设备是否有编码
+                } 
+            }
+        }
+
+        private void CheckBuildingBasicInfo() {
+
+        }
+
+        private void CheckPipeParameters(Element ele) {
+            GetParameter(ele, MtCommon.GetStringValue(MtGlobals.Parameters.Campus));
+            GetParameter(ele, MtCommon.GetStringValue(MtGlobals.Parameters.Building));
+            GetParameter(ele, MtCommon.GetStringValue(MtGlobals.Parameters.MtLevel));
+            GetParameter(ele, MtCommon.GetStringValue(MtGlobals.Parameters.SubDistrict));
+        }
+
+        private void GetParameter(Element ele,string paramName) {
+            if (ele == null || string.IsNullOrEmpty(paramName)) return;
+            Parameter param = ele.LookupParameter(paramName);
+            string errorType = string.Empty;
+            if (null != param) {
+                if (param.AsString()==null) {
+                    errorType = MtCommon.GetStringValue(ErrorType.ParameterIsNull) + paramName;
+                    AddListViewErrorData(ele, errorType);
+                }
+            } else {
+                errorType = MtCommon.GetStringValue(ErrorType.NoParameter) + paramName;
+                AddListViewErrorData(ele, errorType);
+            }
+        }
+
+
+        #endregion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         public void SetBasicInfos() {
             m_ltBasicInfoErrors.Clear();
             if (m_isMarkPipeInfos) {
@@ -115,6 +201,7 @@ namespace ModelDetectionPlugin {
             IList<BasicInfoError> errorList = m_ltBasicInfoErrors.Select(v => v.Value).ToList().OrderBy(v => (v.FamilyName + v.TypeName)).ToList();
             SetErrorListView(errorList);
         }
+
 
         public void SetBuildingBasicInfo() {
             //仅设置楼板的基本参数
@@ -169,15 +256,15 @@ namespace ModelDetectionPlugin {
             if (null == ele || string.IsNullOrEmpty(district))
                 return;
 
-            Parameter param = ele.LookupParameter(MtCommon.GetStringValue(MtGlobals.Parameters.Distribute));
+            Parameter param = ele.LookupParameter(MtCommon.GetStringValue(MtGlobals.Parameters.Campus));
             if (null != param) {
                 bool successed = param.Set(district);
                 if (!successed) {
-                    string errorType = MtCommon.GetStringValue(ErrorType.SetParamterFailed) + MtCommon.GetStringValue(MtGlobals.Parameters.Distribute);
+                    string errorType = MtCommon.GetStringValue(ErrorType.SetParamterFailed) + MtCommon.GetStringValue(MtGlobals.Parameters.Campus);
                     AddListViewErrorData(ele, errorType);
                 }
             } else {
-                string errorType = MtCommon.GetStringValue(ErrorType.NoParameter) + MtCommon.GetStringValue(MtGlobals.Parameters.Distribute);
+                string errorType = MtCommon.GetStringValue(ErrorType.NoParameter) + MtCommon.GetStringValue(MtGlobals.Parameters.Campus);
                 AddListViewErrorData(ele, errorType);
             }
         }

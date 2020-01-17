@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -30,9 +32,8 @@ namespace ModelDetectionPlugin {
             RibbonPanel modelDectionPanel = application.CreateRibbonPanel(MtGlobals.DiagnosticTabName, MtGlobals.DiagnosticPanelName);
             modelDectionPanel.AddSeparator();
 
-
-            PushButtonData pushButtonData = new PushButtonData(MtGlobals.ModelDetection, MtGlobals.ModelDetection,
-            @"E:\5_RevitProject\ModelDetectionPlugin\ModelDetectionPlugin\bin\Debug\ModelDetectionPlugin.dll", "ModelDetectionPlugin.MtModelDectection");
+            string assemblyPath = Path.Combine(AssemblyDirectory, "ModelDetectionPlugin.dll");
+            PushButtonData pushButtonData = new PushButtonData(MtGlobals.ModelDetection, MtGlobals.ModelDetection, assemblyPath, "ModelDetectionPlugin.MtModelDectection");
             PushButton setCarportNum = modelDectionPanel.AddItem(pushButtonData) as PushButton;
 
             string m_mainPageGUID = "9202DA7D-2BFA-4445-A621-904EDB479DD8";
@@ -47,8 +48,8 @@ namespace ModelDetectionPlugin {
 
         public Result OnShutdown(UIControlledApplication application) {
 
-            
-                
+
+
 
             return Result.Succeeded;
         }
@@ -66,10 +67,20 @@ namespace ModelDetectionPlugin {
             bool isAvailable = true;
             try {
                 bool isVisible = m_modelDetectionPanel.IsVisible;
-            } catch (Exception) {
+            }
+            catch (Exception) {
                 isAvailable = false;
             }
             return isAvailable;
+        }
+
+        public static string AssemblyDirectory {
+            get {
+                string codeBase = Assembly.GetExecutingAssembly().CodeBase;
+                UriBuilder uri = new UriBuilder(codeBase);
+                string path = Uri.UnescapeDataString(uri.Path);
+                return Path.GetDirectoryName(path);
+            }
         }
 
     }

@@ -7,6 +7,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 
 namespace ModelDetectionPlugin {
+
     public class MtSpuriousConnection : IExternalEventHandler {
 
         UIApplication m_uiApp;

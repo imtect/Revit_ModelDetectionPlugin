@@ -42,7 +42,7 @@ namespace ModelDetectionPlugin {
                 case MtGlobals.LevelMethods.None:
                     break;
                 case MtGlobals.LevelMethods.MarkVerticalPipe:
-                    MarkVerticalPipe();
+                        MarkVerticalPipe();                      
                     break;
                 case MtGlobals.LevelMethods.CheckLevel:
                     CheckPipeLevel();
@@ -86,7 +86,7 @@ namespace ModelDetectionPlugin {
 
                 if (category.Equals(MtGlobals.PipeCategory) || category.Equals(MtGlobals.DustCategory)) {
 
-                    if (ele.LookupParameter(MtCommon.GetStringValue(MtGlobals.Parameters.VerticalPipe)) == null) continue;
+                    //if (ele.LookupParameter(MtCommon.GetStringValue(MtGlobals.Parameters.VerticalPipe)) == null) continue;
 
                     string startoffset = GetPipeStartOffset(ele);
                     string endoffset = GetPipeEndOffset(ele);

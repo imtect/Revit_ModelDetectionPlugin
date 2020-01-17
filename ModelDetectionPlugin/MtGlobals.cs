@@ -21,6 +21,8 @@ namespace ModelDetectionPlugin {
 
         public const string PipeCategory = "管道";
         public const string DustCategory = "风管";
+        public const string EquipmentCategory = "机械设备";
+        public const string ElecticCategory = "电气设备";
 
         public static DockablePaneId m_mainDockablePaneId = new DockablePaneId(new Guid("B9427438-A048-4088-97D7-EC0EBC92107C"));
 
@@ -33,6 +35,7 @@ namespace ModelDetectionPlugin {
         }
 
         public enum BasicInfoMethods {
+            CheckBasicInfo,
             MarkBasicInfo,
             WriteFloorInfo,
             MarkFloorInfo,
@@ -63,6 +66,8 @@ namespace ModelDetectionPlugin {
         public enum MiscMethods {
             None,
             GetSwitchLightRelation,
+            EncodeEquipment,
+            GetPipePiameter
         }
 
         public enum Tunnel {
@@ -71,7 +76,7 @@ namespace ModelDetectionPlugin {
             [StringValue("冬季")] //一般锅炉房内的管道
             Winter = 1,
             [StringValue("夏季")] //一般空调机组的管道
-            Summer = 2 ,
+            Summer = 2,
             [StringValue("过渡季")]
             TransitionQuarter = 3,
         }
@@ -311,7 +316,7 @@ namespace ModelDetectionPlugin {
             [StringValue("楼层")]
             MtLevel,
             [StringValue("院区")]
-            Distribute,
+            Campus,
             [StringValue("建筑")]
             Building,
             [StringValue("分区")]
@@ -509,9 +514,9 @@ namespace ModelDetectionPlugin {
             if (ele != null) {
                 param = ele.LookupParameter(paramName);
                 if (param != null && !param.IsReadOnly) {
-                    succssed = param.Set(paramValue);
+                    succssed = param.SetValueString(paramValue);
                     if (!succssed)
-                        succssed = param.SetValueString(paramValue);
+                        succssed = param.Set(paramValue);
                 } else {
                     Console.WriteLine("The element has no " + paramName + " parameter.");
                 }
@@ -567,6 +572,22 @@ namespace ModelDetectionPlugin {
             }
 
             return output;
+        }
+
+        public static void IsolateElements(Document doc, ICollection<Element> elements) {
+            List<ElementId> eleIds = new List<ElementId>();
+            foreach (var item in elements) {
+                eleIds.Add(item.Id);
+            }
+            MtCommon.IsolateElements(doc, eleIds);
+        }
+
+        public static void HideElements(Document doc, ICollection<Element> elements) {
+            List<ElementId> eleIds = new List<ElementId>();
+            foreach (var item in elements) {
+                eleIds.Add(item.Id);
+            }
+            MtCommon.HideElementsTemporary(doc, eleIds);
         }
 
         /// <summary>
