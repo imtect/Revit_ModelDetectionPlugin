@@ -195,9 +195,10 @@
                     <Button x:Name="EquipEncode" Content="设备编码" HorizontalAlignment="Left" Margin="10,241,0,0" VerticalAlignment="Top" Width="260" Grid.ColumnSpan="2" Height="35" Click="EquipEncode_Click"/>
                     <TextBox x:Name="SqlitePathText" HorizontalAlignment="Left" Height="30" Margin="10,289,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="209" Grid.ColumnSpan="2"/>
                     <Button x:Name="OpenPiameterBtn" Content="打开DB" Grid.Column="1" HorizontalAlignment="Left" Margin="60,289,0,0" VerticalAlignment="Top" Width="51" Height="30" Click="OpenPiameterBtn_Click"/>
-                    <Button x:Name="PiameterBtn" Content="获取管道直径,保存到Pipe表中" HorizontalAlignment="Left" Margin="10,359,0,0" VerticalAlignment="Top" Width="260" Grid.ColumnSpan="2" Height="35" Click="PiameterBtn_Click"/>
+                    <Button x:Name="PiameterBtn" Content="获取管道直径,保存到Pipe表中" HorizontalAlignment="Left" Margin="10,379,0,0" VerticalAlignment="Top" Width="260" Grid.ColumnSpan="2" Height="35" Click="PiameterBtn_Click"/>
                     <TextBox x:Name="SystemCodeText" HorizontalAlignment="Left" Height="30" Margin="10,324,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="101" TextChanged="SystemCodeText_TextChanged" Grid.Column="1"/>
                     <Label Content="系统代码（AC/MG/PD）" HorizontalAlignment="Left" Margin="10,329,0,0" VerticalAlignment="Top" Width="149"/>
+                    <CheckBox x:Name="IsCreateFileCheckBox" Content="出现问题生成问题ID到桌面" HorizontalAlignment="Left" Margin="10,359,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Width="260" Checked="IsCreateFileCheckBox_Checked"/>
                 </Grid>
             </TabItem>
         </TabControl>

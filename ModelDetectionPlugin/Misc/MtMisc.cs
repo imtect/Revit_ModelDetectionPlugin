@@ -43,6 +43,7 @@ namespace ModelDetectionPlugin {
         //public string SystemCode;
 
         public string m_SystemCode;
+        public bool m_IsCreateFile;
 
         MtSQLite m_sqlite;
 
@@ -223,14 +224,16 @@ namespace ModelDetectionPlugin {
             float piameter = 0;
 
             MtCommon.WriteStringIntoText("总共：" + collector.Count().ToString());
-
             int index = 0;
-
             foreach (var ele in collector) {
-                var content = MtCommon.ReadStringFromText();
-                content += "\r\n" + $"索引{index}:" + ele.Id.ToString();
-                MtCommon.WriteStringIntoText(content);
-                index++;
+
+                if (m_IsCreateFile) {
+                    var content = MtCommon.ReadStringFromText();
+                    content += "\r\n" + $"索引{index}:" + ele.Id.ToString();
+                    MtCommon.WriteStringIntoText(content);
+                    index++;
+                }
+
                 string eleID = ele.Id.ToString();
 
                 //判断是否是设备，通过设备编码参数，判断是否为设备,设备的直径默认设置为10000
@@ -242,68 +245,69 @@ namespace ModelDetectionPlugin {
                     var paramter = GetParameterWithPiameterParam(ele, "直径");
                     if (paramter != null && paramter.Count != 0) {
                         foreach (var item in paramter) {
-                            piameter += float.Parse(item.AsValueString());
+                            var value = GetMultiNumbers(item.AsValueString()).FirstOrDefault();
+                            piameter += value;
                         }
-                        piameter = piameter / paramter.Count;
+                        piameter = (int)(piameter / paramter.Count);
                     } else {
                         //没有直径参数的，利用宽高等参数判断，取中值
                         var width = GetParameterWithPiameterParam(ele, "风管宽度").FirstOrDefault(); ;
                         var height = GetParameterWithPiameterParam(ele, "风管高度").FirstOrDefault();
 
                         if (width != null && height != null) {
-                            var widthValue = float.Parse(width.AsValueString());
-                            var heightValue = float.Parse(height.AsValueString());
-                            piameter = (widthValue + heightValue) / 2;
+                            var widthValue = GetMultiNumbers(width.AsValueString()).FirstOrDefault();
+                            var heightValue = GetMultiNumbers(height.AsValueString()).FirstOrDefault();
+                            piameter = (int)((widthValue + heightValue) / 2);
                         } else {
                             //利用尺寸200x100,200x100200x100,只取前后两位计算
                             var size = MtCommon.GetOneParameter(ele, "尺寸");
                             if (!string.IsNullOrEmpty(size)) {
-                                List<string> values = new List<string>();
-                                if (size.Contains("×")) {
-                                    values = size.Split('×').ToList();
-                                    piameter = (int.Parse(values[0]) + int.Parse(values[values.Count - 1])) / 2;
-                                } else if (size.Contains("-")) {
-                                    values = size.Split('-').ToList();
-                                    piameter = (int.Parse(values[0]) + int.Parse(values[values.Count - 1])) / 2;
-                                } else {
-                                    //正则表达式提取数字
-                                    MatchCollection mc0 = Regex.Matches(size, @"/d+(/./d+)?");
-                                    double sum = 0;
-                                    foreach (var item in mc0) {
-                                        sum += Convert.ToDouble(item);
-                                    }
-                                    piameter = (int)(sum / mc0.Count);
-                                }
+                                var result = GetMultiNumbers(size);
+                                if (result.Count >= 2) {
+                                    piameter = (int)((result[0] + result[result.Count - 1]) / 2);
+                                } else if (result.Count == 1) {
+                                    piameter = result[0];
+                                } else
+                                    piameter = 0;
                             } else {
                                 piameter = 0f;
                             }
                         }
                     }
                 }
-
                 var campus = MtCommon.GetOneParameter(ele, MtCommon.GetStringValue(Parameters.Campus));
                 var build = MtCommon.GetOneParameter(ele, MtCommon.GetStringValue(Parameters.Building));
-                var level = MtCommon.GetOneParameter(ele, MtCommon.GetStringValue(Parameters.Level));
+                var level = MtCommon.GetOneParameter(ele, MtCommon.GetStringValue(Parameters.MtLevel));
                 var pipeId = campus + "-" + build + "-" + level + "_" + m_SystemCode + "_" + ele.Id;
-
                 if (!m_dic.ContainsKey(pipeId)) {
                     m_dic.Add(pipeId, piameter);
-
                     eles.Add(ele);
-
-                    //MtCommon.SetOneParameter(ele, "空间编码", piameter.ToString());
                 }
+                piameter = 0;
             }
+
+            MtCommon.HideElements(m_uIDocument.Document, eles);
 
             m_sqlite = new MtSQLite(m_sqliteFilePath);
             List<string> quarays = new List<string>();
             foreach (var item in m_dic) {
-                //quarays.Add($"Update Pipe Set diameter = '{item.Value}' where code = '{item.Key}'");
-                quarays.Add($"Insert into Pipe (code,diameter) values ('{item.Key}','{item.Value}')");
+                quarays.Add($"Update Pipe Set diameter = '{item.Value}' where code = '{item.Key}'");
+                //quarays.Add($"Insert into Pipe (code,diameter) values ('{item.Key}','{item.Value}')");
             }
             m_sqlite.ExecuteNoneQuery(quarays.ToArray());
+        }
 
-            MtCommon.HideElements(m_uIDocument.Document, eles);
+        List<int> GetMultiNumbers(string str) {
+            if (string.IsNullOrEmpty(str)) return new List<int>();
+            List<int> result = new List<int>();
+            Regex regex = new Regex("\\d+\\.?\\d*");
+            if (regex.IsMatch(str)) {
+                MatchCollection mc0 = regex.Matches(str);
+                foreach (var item in mc0) {
+                    result.Add(int.Parse(Convert.ToString(item)));
+                }
+            }
+            return result;
         }
 
         List<Parameter> GetParameterWithPiameterParam(Element ele, string symble) {

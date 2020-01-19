@@ -605,6 +605,8 @@ namespace ModelDetectionPlugin {
                 m_misc.ColumnName = columnNameText.Text.ToString();
             if (SystemCodeText.Text != null)
                 m_misc.m_SystemCode = SystemCodeText.Text.ToString();
+
+            m_misc.m_IsCreateFile = IsCreateFileCheckBox.IsChecked == true ? true : false;
         }
 
         private void OpenDB_Click(object sender, RoutedEventArgs e) {
@@ -683,6 +685,17 @@ namespace ModelDetectionPlugin {
         private void SystemCodeText_TextChanged(object sender, TextChangedEventArgs e) {
             if (SystemCodeText.Text != null && m_misc != null)
                 m_misc.m_SystemCode = SystemCodeText.Text.ToString();
+        }
+
+
+        private void IsCreateFileCheckBox_Checked(object sender, RoutedEventArgs e) {
+            if (m_misc != null) {
+                if (IsCreateFileCheckBox.IsChecked == true) {
+                    m_misc.m_IsCreateFile = false;
+                } else {
+                    m_misc.m_IsCreateFile = true;
+                }
+            }
         }
     }
 }
