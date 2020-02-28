@@ -66,6 +66,7 @@ namespace ModelDetectionPlugin {
         public enum MiscMethods {
             None,
             GetSwitchLightRelation,
+            ClearEquipmentCode,
             EncodeEquipment,
             GetPipePiameter
         }
@@ -83,61 +84,262 @@ namespace ModelDetectionPlugin {
 
 
         public enum EPSystem {
-            [StringValue("空调机房")]
-            CR = 1000,
+            [StringValue("空调热水供水")]
+            ac_hotwatersupply = 1001,
+            [StringValue("空调热水回水")]
+            ac_hotwaterreturn = 1002,
+            [StringValue("空调冷冻水供水")]
+            ac_freezewatersupply = 1003,
+            [StringValue("空调冷冻水回水")]
+            ac_freezewaterback = 1004,
             [StringValue("空调冷热水供水")]
-            WaterSupply = 1001,
+            ac_watersupply = 1005,
             [StringValue("空调冷热水回水")]
-            WaterReturn = 1002,
+            ac_waterreturn = 1006,
+            [StringValue("洁净空调冷冻水供水")]
+            ac_cleancoldwatersupply = 1007,
+            [StringValue("洁净空调冷冻水回水")]
+            ac_cleancoldwaterreturn = 1008,
+            [StringValue("洁净空调热水供水")]
+            ac_cleanhotwatersupply = 1009,
+            [StringValue("洁净空调热水回水")]
+            ac_cleanhotwaterreturn = 1010,
+            [StringValue("空调加湿管")]
+            ac_humidifyingpipe = 1011,
+            [StringValue("空调软化水")]
+            ac_acsoftenedwater = 1012,
             [StringValue("空调冷凝水")]
-            Condensate = 1003,
-            [StringValue("风盘")]
-            Fan = 1004,
-            [StringValue("洁净空调")]
-            Clean = 1005,
-            [StringValue("新风")]
-            Fresh = 1006,
-            [StringValue("空调机房-楼层")]
-            LevelCR = 1007,
-            [StringValue("暖通消防")]
-            Fire = 1008,
+            ac_condensate = 1013,
+            [StringValue("冷凝回收供水")]
+            ac_condensaterecoverysupplywater = 1014,
+            [StringValue("冷凝回收回水")]
+            ac_condensaterecoverybackwater = 1015,
+            [StringValue("冷却水泄水")]
+            ac_coolingwaterdrainage = 1016,
+            [StringValue("空调冷却水供水")]
+            ac_coolingwatersupply = 1017,
+            [StringValue("空调冷却水回水")]
+            ac_coolingwaterback = 1018,
+            [StringValue("冷却水补水")]
+            ac_coolingwaterreplenishment = 1019,
+            [StringValue("冷冻水补水")]
+            ac_freezewaterreplenishment = 1020,
+            [StringValue("定压补水")]
+            ac_constantpressuresupplementarywater = 1021,
+            [StringValue("空调冷媒管")]
+            ac_refrigerantpipe = 1022,
+            [StringValue("空调冷媒-供")]
+            ac_refrigerantsupply = 1023,
+            [StringValue("空调冷媒-回")]
+            ac_refrigerantreturn = 1024,
+            [StringValue("测压管")]
+            ac_pressuretube = 1025,
+            [StringValue("乙二醇补液")]
+            ac_ethyleneglycolrehydration = 1026,
+            [StringValue("乙二醇供液")]
+            ac_ethyleneglycolinjection = 1027,
+            [StringValue("乙二醇回液")]
+            ac_ethyleneglycolreflux = 1028,
+            [StringValue("蒸汽加湿")]
+            ac_steamhumidification = 1029,
+            [StringValue("地暖盘管")]
+            ac_floorheatingcoil = 1030,
+            [StringValue("地板采暖供水")]
+            ac_floorheatingwatersupply = 1031,
+            [StringValue("地板采暖回水")]
+            ac_floorheatingwaterback = 1032,
+            [StringValue("采暖软化水")]
+            ac_heatingsoftenedwater = 1033,
+            [StringValue("膨胀管")]
+            ac_swellingwater = 1034,
+            [StringValue("散热器采暖供水")]
+            ac_radiatorheatingwatersupply = 1035,
+            [StringValue("散热器采暖回水")]
+            ac_radiatorheatingwaterback = 1036,
+            [StringValue("市政热力供水")]
+            ac_municipalthermalwatersupply = 1037,
+            [StringValue("市政热力回水")]
+            ac_municipalthermalwaterback = 1038,
+            [StringValue("排风管")]
+            ac_exhaust = 1039,
+            [StringValue("事故排风")]
+            ac_accidentexhausting = 1040,
+            [StringValue("排风兼排烟")]
+            ac_exhaustandsmokeexhaust = 1041,
+            [StringValue("排烟")]
+            ac_exhaustsmoke = 1042,
             [StringValue("排油烟")]
-            OilSmokeEmission = 1009,
-            [StringValue("排风")]
-            Exhaust = 1010,
-            [StringValue("补风")]
-            AirSupply = 1011,
-            [StringValue("蒸汽")]
-            Steam = 1012,
-            [StringValue("二氧化碳")]
-            CarbanDioxide = 1400,
-            [StringValue("压缩空气")]
-            CompressAir = 1401,
-            [StringValue("氧气")]
-            Oxygen = 1402,
-            [StringValue("笑气")]
-            NitrousOxide = 1403,
-            [StringValue("负压吸引")]
-            NegativePressureAttraction = 1404,
-            [StringValue("废气")]
-            ExhaustGas = 1405,
-            [StringValue("照明插座用电")]
-            Light = 1100,
-            [StringValue("其他")]
-            Others = 1101,
-            [StringValue("给排水消防")]
-            WaterSuplyAndFireCtl = 1200,
-            [StringValue("排水")]
-            Drainage = 1201,
+            ac_oilsmokeemission = 1043,
+            [StringValue("新风管")]
+            ac_airfresh = 1044,
+            [StringValue("新风兼补风")]
+            ac_airfreshandmakeupair = 1045,
+            [StringValue("送风管")]
+            ac_airsupply = 1046,
+            [StringValue("送风兼补风")]
+            ac_airsupplyandmakeupair = 1047,
+            [StringValue("加压送风")]
+            ac_pressurizationairsupply = 1048,
+            [StringValue("回风")]
+            ac_airback = 1049,
+            [StringValue("平时补风")]
+            ac_peacetimemakeupair = 1050,
+            [StringValue("厨房补风")]
+            ac_kitchenmakeupair = 1051,
+            [StringValue("消防补风")]
+            ac_firemakeupair = 1052,
+            [StringValue("风盘送风")]
+            ac_fanairsupply = 1053,
+            [StringValue("风盘回风")]
+            ac_fanairreturn = 1054,
+            [StringValue("洁净送风")]
+            ac_cleanairsupply = 1055,
+            [StringValue("洁净排风")]
+            ac_cleanairexhaus = 1056,
+            [StringValue("洁净回风")]
+            ac_cleanreturnair = 1057,
+            [StringValue("洁净新风")]
+            ac_cleanfreshair = 1058,
             [StringValue("生活给水")]
-            LivingWaterSuply = 1202,
-            [StringValue("生活热水给水")]
-            LivingWaterSuplyHot = 1203,
+            wsad_livingwatersuply = 1201,
+            [StringValue("市政给水")]
+            wsad_municipalwatersupply = 1202,
+            [StringValue("低区生活给水")]
+            wsad_lowwatersupply = 1203,
+            [StringValue("中区生活给水")]
+            wsad_middlewatersupply = 1204,
+            [StringValue("高区生活给水")]
+            wsad_highwatersupply = 1205,
+            [StringValue("直饮水供水")]
+            wsad_directdrinkingwatersupply = 1206,
+            [StringValue("直饮水回水")]
+            wsad_directdrinkingwaterreturn = 1207,
+            [StringValue("人防给水")]
+            wsad_watersupplyforcivil = 1208,
+            [StringValue("绿化给水")]
+            wsad_greeningwatersupply = 1209,
+            [StringValue("中水给水")]
+            wsad_reclaimedwatersupply = 1210,
+            [StringValue("软化水")]
+            wsad_softenedwater = 1211,
+            [StringValue("水景喷泉")]
+            wsad_waterscapefountain = 1212,
+            [StringValue("太阳能给水")]
+            wsad_solarwatersupply = 1213,
+            [StringValue("太阳能热水")]
+            wsad_solarhotwater = 1214,
+            [StringValue("生活热水供水")]
+            wsad_livinghotwatersuply = 1215,
+            [StringValue("低区热水供水")]
+            wsad_lowhotwatersuply = 1216,
+            [StringValue("中区热水供水")]
+            wsad_middlehotwatersuply = 1217,
+            [StringValue("高区热水供水")]
+            wsad_highhotwatersuply = 1218,
             [StringValue("生活热水回水")]
-            LivingWaterBackHot = 1204,
-            [StringValue("通气系统")]
-            VentilatorySystem = 1205,
-
+            wsad_livinghotwaterreturn = 1219,
+            [StringValue("低区热水回水")]
+            wsad_lowhotwaterreturn = 1220,
+            [StringValue("中区热水回水")]
+            wsad_middlehotwaterreturn = 1221,
+            [StringValue("高区热水回水")]
+            wsad_highhotwaterreturn = 1222,
+            [StringValue("消火栓")]
+            wsad_indoorfirehydrant = 1223,
+            [StringValue("低区消火栓")]
+            wsad_lowfirehydrant = 1224,
+            [StringValue("中区消火栓")]
+            wsad_middlefirehydrant = 1225,
+            [StringValue("高区消火栓")]
+            wsad_highfirehydrant = 1226,
+            [StringValue("室外消火栓")]
+            wsad_outdoorfirehydrant = 1227,
+            [StringValue("消防水泡给水")]
+            wsad_firebubblewatersupply = 1228,
+            [StringValue("消防水池给水")]
+            wsad_firepoolwatersupply = 1229,
+            [StringValue("细水雾")]
+            wsad_watermist = 1230,
+            [StringValue("水喷雾")]
+            wsad_waterspray = 1231,
+            [StringValue("自动喷淋")]
+            wsad_automaticspraying = 1232,
+            [StringValue("气体灭火")]
+            wsad_gasfireextinguishing = 1233,
+            [StringValue("废水")]
+            wsad_wastewater = 1234,
+            [StringValue("压力废水")]
+            wsad_pressurewastewater = 1235,
+            [StringValue("厨房废水")]
+            wsad_kitchenwastewater = 1236,
+            [StringValue("污水")]
+            wsad_sewage = 1237,
+            [StringValue("压力污水")]
+            wsad_pressuresewage = 1238,
+            [StringValue("雨水")]
+            wsad_rainwater = 1239,
+            [StringValue("压力雨水")]
+            wsad_pressurerain = 1240,
+            [StringValue("虹吸雨水")]
+            wsad_siphonrain = 1241,
+            [StringValue("通气管")]
+            wsad_ventpipe = 1242,
+            [StringValue("锅炉供水")]
+            boiler_boilerwatersupply = 1501,
+            [StringValue("锅炉回水")]
+            boiler_boilerwaterreturn = 1502,
+            [StringValue("锅炉软化水")]
+            boiler_softenedwater = 1503,
+            [StringValue("省煤器")]
+            boiler_economizer = 1504,
+            [StringValue("除氧管")]
+            boiler_deaerator = 1505,
+            [StringValue("取样管")]
+            boiler_samplingtube = 1506,
+            [StringValue("锅炉排污管")]
+            boiler_sewagepipe = 1507,
+            [StringValue("燃气供气")]
+            boiler_gassupply = 1508,
+            [StringValue("蒸汽供汽")]
+            boiler_steamsupply = 1509,
+            [StringValue("蒸汽凝结回水")]
+            boiler_steambackwater = 1510,
+            [StringValue("二氧化碳")]
+            mg_carbondioxide = 1401,
+            [StringValue("压缩空气")]
+            mg_compressedair = 1402,
+            [StringValue("氧气")]
+            mg_oxygen = 1403,
+            [StringValue("笑气(氧化亚氮)")]
+            mg_nitrousoxide = 1404,
+            [StringValue("负压吸引")]
+            mg_negativepressureattraction = 1405,
+            [StringValue("臭氧")]
+            mg_ozone = 1406,
+            [StringValue("废气")]
+            mg_exhaustgas = 1407,
+            [StringValue("麻醉")]
+            mg_anesthesia = 1408,
+            [StringValue("弱电桥架")]
+            pd_weakbridge = 1101,
+            [StringValue("强电桥架")]
+            pd_strongbridge = 1102,
+            [StringValue("消防桥架")]
+            pd_firebridge = 1103,
+            [StringValue("安防桥架")]
+            pd_securitybridge = 1104,
+            [StringValue("综合布线桥架")]
+            pd_integratedwiringbridge = 1105,
+            [StringValue("线管")]
+            pd_linetube = 1106,
+            [StringValue("灯具")]
+            pd_light = 1107,
+            [StringValue("开关插座")]
+            pd_switch = 1108,
+            [StringValue("报警装置")]
+            pd_security = 1109,
+            [StringValue("风盘设备")]
+            ac_fanequip = 1059,
         }
 
 

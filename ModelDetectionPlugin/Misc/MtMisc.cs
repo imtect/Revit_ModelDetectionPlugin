@@ -43,7 +43,7 @@ namespace ModelDetectionPlugin {
         //public string SystemCode;
 
         public string m_SystemCode;
-        public bool m_IsCreateFile;
+        public bool m_IsCreateFile = false;
 
         MtSQLite m_sqlite;
 
@@ -71,6 +71,9 @@ namespace ModelDetectionPlugin {
                     break;
                 case MtGlobals.MiscMethods.GetSwitchLightRelation:
                     GetSwitchLightRelation();
+                    break;
+                case MtGlobals.MiscMethods.ClearEquipmentCode:
+                    ClearEquipmentCode();
                     break;
                 case MtGlobals.MiscMethods.EncodeEquipment:
                     EncodeEquipment();
@@ -190,6 +193,18 @@ namespace ModelDetectionPlugin {
         #endregion
 
         #region EncodeEquipment
+        void ClearEquipmentCode() {
+            ElementClassFilter instanceFilter = new ElementClassFilter(typeof(FamilyInstance));
+            ElementClassFilter hostFilter = new ElementClassFilter(typeof(HostObject));
+            LogicalOrFilter andFilter = new LogicalOrFilter(instanceFilter, hostFilter);
+            FilteredElementCollector collector = new FilteredElementCollector(m_uIDocument.Document);
+            collector.WherePasses(andFilter);
+
+            foreach (var ele in collector) {
+                MtCommon.SetOneParameter(ele, MtCommon.GetStringValue(MtGlobals.Parameters.EquipmentCode), string.Empty);
+            }
+        }
+
         void EncodeEquipment() {
             ElementClassFilter instanceFilter = new ElementClassFilter(typeof(FamilyInstance));
             ElementClassFilter hostFilter = new ElementClassFilter(typeof(HostObject));
@@ -203,7 +218,9 @@ namespace ModelDetectionPlugin {
                 if (familyName.Contains("风盘") || familyName.Contains("风机盘管")) continue;
                 if (catogary.Equals(MtGlobals.EquipmentCategory) || catogary.Equals(MtGlobals.ElecticCategory)) {
                     //temp
-                    MtCommon.SetOneParameter(ele, MtCommon.GetStringValue(MtGlobals.Parameters.EquipmentCode), familyName.Substring(0, 5));
+                    var length = familyName.Length;
+                    MtCommon.SetOneParameter(ele, MtCommon.GetStringValue(MtGlobals.Parameters.EquipmentCode),
+                        length <= 5 ? familyName.Substring(0, length - 1) : familyName.Substring(0, 5));
                 }
             }
         }

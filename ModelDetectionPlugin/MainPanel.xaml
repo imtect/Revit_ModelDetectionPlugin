@@ -40,10 +40,10 @@
                         <System:String>建筑</System:String>
                         <System:String>管道</System:String>
                     </ComboBox>
-                    <ListBox HorizontalAlignment="Left" Height="181" Margin="0,26,0,0" VerticalAlignment="Top" Width="200">
+                    <ListBox HorizontalAlignment="Left" Height="181" Margin="0,26,0,0" VerticalAlignment="Top" Width="200" SelectionChanged="ListBox_SelectionChanged">
                         <CheckBox Content="建筑"/>
                     </ListBox>
-                    <Button Content="检测基础信息" HorizontalAlignment="Left" Margin="0,207,0,0" VerticalAlignment="Top" Width="200" Height="25" Background="Gainsboro"/>
+                    <Button x:Name="CheckBasicInfoBtn" Content="检测基础信息" HorizontalAlignment="Left" Margin="0,207,0,0" VerticalAlignment="Top" Width="200" Height="25" Background="Gainsboro" Click="CheckBasicInfoBtn_Click"/>
                     <Button x:Name="BasicInfo_Btn_Copy" Content="复杂信息标注" HorizontalAlignment="Left" Margin="0,369,0,0" VerticalAlignment="Top" Width="200" Click="BasicInfo_Btn_Click" Height="25" Background="Gainsboro"/>
 
                 </Grid>
@@ -192,13 +192,14 @@
                             <Button x:Name="SaveDataBtn" Content="保存关系" Height="30" Width="250" Click="SaveDataBtn_Click" Margin="0"/>
                         </StackPanel>
                     </GroupBox>
-                    <Button x:Name="EquipEncode" Content="设备编码" HorizontalAlignment="Left" Margin="10,241,0,0" VerticalAlignment="Top" Width="260" Grid.ColumnSpan="2" Height="35" Click="EquipEncode_Click"/>
+                    <Button x:Name="EquipEncode" Content="设备编码" HorizontalAlignment="Left" Margin="0,241,0,0" VerticalAlignment="Top" Width="111" Height="35" Click="EquipEncode_Click" Grid.Column="1"/>
                     <TextBox x:Name="SqlitePathText" HorizontalAlignment="Left" Height="30" Margin="10,289,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="209" Grid.ColumnSpan="2"/>
                     <Button x:Name="OpenPiameterBtn" Content="打开DB" Grid.Column="1" HorizontalAlignment="Left" Margin="60,289,0,0" VerticalAlignment="Top" Width="51" Height="30" Click="OpenPiameterBtn_Click"/>
                     <Button x:Name="PiameterBtn" Content="获取管道直径,保存到Pipe表中" HorizontalAlignment="Left" Margin="10,379,0,0" VerticalAlignment="Top" Width="260" Grid.ColumnSpan="2" Height="35" Click="PiameterBtn_Click"/>
                     <TextBox x:Name="SystemCodeText" HorizontalAlignment="Left" Height="30" Margin="10,324,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="101" TextChanged="SystemCodeText_TextChanged" Grid.Column="1"/>
                     <Label Content="系统代码（AC/MG/PD）" HorizontalAlignment="Left" Margin="10,329,0,0" VerticalAlignment="Top" Width="149"/>
                     <CheckBox x:Name="IsCreateFileCheckBox" Content="出现问题生成问题ID到桌面" HorizontalAlignment="Left" Margin="10,359,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" Width="260" Checked="IsCreateFileCheckBox_Checked"/>
+                    <Button x:Name="ClearEquipEncode" Content="清空设备编码" HorizontalAlignment="Left" Margin="10,241,0,0" VerticalAlignment="Top" Width="139" Height="35" Click="ClearEquipEncode_Click"/>
                 </Grid>
             </TabItem>
         </TabControl>

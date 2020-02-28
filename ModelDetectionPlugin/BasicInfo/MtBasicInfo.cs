@@ -35,7 +35,7 @@ namespace ModelDetectionPlugin {
         public Autodesk.Revit.DB.Color m_corridorColor;
         public bool m_isClassifyColorByDep;
 
-        Dictionary<string, BasicInfoError> m_ltBasicInfoErrors;
+        Dictionary<ElementId, BasicInfoError> m_ltBasicInfoErrors;
 
         public string District {
             get {
@@ -66,7 +66,7 @@ namespace ModelDetectionPlugin {
         #endregion
 
         public MtBasicInfo() {
-            m_ltBasicInfoErrors = new Dictionary<string, BasicInfoError>();
+            m_ltBasicInfoErrors = new Dictionary<ElementId, BasicInfoError>();
         }
 
         public void Execute(UIApplication uiApplication) {
@@ -80,6 +80,9 @@ namespace ModelDetectionPlugin {
                 case MtGlobals.BasicInfoMethods.CheckBasicInfo:
                     CheckBasicInfos();
                     break;
+
+
+
                 case MtGlobals.BasicInfoMethods.MarkBasicInfo:
                     SetBasicInfos();
                     break;
@@ -112,11 +115,11 @@ namespace ModelDetectionPlugin {
 
         public void CheckBasicInfos() {
             m_ltBasicInfoErrors.Clear();
-            if (m_isMarkPipeInfos) {
-                CheckPipeBasicInfo();
-            } else {
-                CheckBuildingBasicInfo();
-            }
+            //if (m_isMarkPipeInfos) {
+            CheckPipeBasicInfo();
+            //} else {
+            //    CheckBuildingBasicInfo();
+            //}
             IList<BasicInfoError> errorList = m_ltBasicInfoErrors.Select(v => v.Value).ToList().OrderBy(v => (v.FamilyName + v.TypeName)).ToList();
             SetErrorListView(errorList);
         }
@@ -140,8 +143,9 @@ namespace ModelDetectionPlugin {
                 } else if (category.Equals(MtGlobals.EquipmentCategory)) {
                     if (ele.Name.Contains("风盘") || ele.Name.Contains("风机盘管")) continue;
                     GetParameter(ele, MtCommon.GetStringValue(MtGlobals.Parameters.EquipmentCode)); //设备是否有编码
-                } 
+                }
             }
+            //MtCommon.IsolateElements(m_uIDocument.Document, m_ltBasicInfoErrors.Select(k => k.Key).ToList());
         }
 
         private void CheckBuildingBasicInfo() {
@@ -155,12 +159,12 @@ namespace ModelDetectionPlugin {
             GetParameter(ele, MtCommon.GetStringValue(MtGlobals.Parameters.SubDistrict));
         }
 
-        private void GetParameter(Element ele,string paramName) {
+        private void GetParameter(Element ele, string paramName) {
             if (ele == null || string.IsNullOrEmpty(paramName)) return;
             Parameter param = ele.LookupParameter(paramName);
             string errorType = string.Empty;
             if (null != param) {
-                if (param.AsString()==null) {
+                if (param.AsString() == null) {
                     errorType = MtCommon.GetStringValue(ErrorType.ParameterIsNull) + paramName;
                     AddListViewErrorData(ele, errorType);
                 }
@@ -227,9 +231,10 @@ namespace ModelDetectionPlugin {
         }
 
         public void SetErrorListView(ICollection<BasicInfoError> elementIds) {
-            if (elementIds != null && elementIds.Count != 0) {
-                ListView basicInfoView = Ribbon.instance.ModelDetectionPanel.BasicInfoListView;
-                if (basicInfoView != null) {
+            ListView basicInfoView = Ribbon.instance.ModelDetectionPanel.BasicInfoListView;
+            if (basicInfoView != null) {
+                basicInfoView.Items.Clear();
+                if (elementIds != null && elementIds.Count != 0) {
                     basicInfoView.ItemsSource = elementIds;
                     SetListViewMsg("总数为：" + elementIds.Count);
                 }
@@ -350,8 +355,8 @@ namespace ModelDetectionPlugin {
             string message = errorType;
             BasicInfoError error = CreateBasicInfoError(ele.Id.ToString(), famliyName, typeName, message);
 
-            if (!m_ltBasicInfoErrors.ContainsKey(ele.Id.ToString())) {
-                m_ltBasicInfoErrors.Add(ele.Id.ToString(), error);
+            if (!m_ltBasicInfoErrors.ContainsKey(ele.Id)) {
+                m_ltBasicInfoErrors.Add(ele.Id, error);
             }
         }
 

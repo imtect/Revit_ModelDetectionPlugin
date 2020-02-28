@@ -691,11 +691,25 @@ namespace ModelDetectionPlugin {
         private void IsCreateFileCheckBox_Checked(object sender, RoutedEventArgs e) {
             if (m_misc != null) {
                 if (IsCreateFileCheckBox.IsChecked == true) {
-                    m_misc.m_IsCreateFile = false;
-                } else {
                     m_misc.m_IsCreateFile = true;
+                } else {
+                    m_misc.m_IsCreateFile = false;
                 }
             }
+        }
+
+        private void ClearEquipEncode_Click(object sender, RoutedEventArgs e) {
+            m_misc.SelMethod = MtGlobals.MiscMethods.ClearEquipmentCode;
+            m_miscEventHandler.Raise();
+        }
+
+        private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+
+        }
+
+        private void CheckBasicInfoBtn_Click(object sender, RoutedEventArgs e) {
+            m_basicInfo.SelMethod = MtGlobals.BasicInfoMethods.CheckBasicInfo;
+            m_basicInfoEventHandler.Raise();
         }
     }
 }
