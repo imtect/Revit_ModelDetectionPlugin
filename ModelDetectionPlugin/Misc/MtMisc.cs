@@ -295,9 +295,16 @@ namespace ModelDetectionPlugin {
                 var campus = MtCommon.GetOneParameter(ele, MtCommon.GetStringValue(Parameters.Campus));
                 var build = MtCommon.GetOneParameter(ele, MtCommon.GetStringValue(Parameters.Building));
                 var level = MtCommon.GetOneParameter(ele, MtCommon.GetStringValue(Parameters.MtLevel));
-                var pipeId = campus + "-" + build + "-" + level + "_" + m_SystemCode + "_" + ele.Id;
-                if (!m_dic.ContainsKey(pipeId)) {
-                    m_dic.Add(pipeId, piameter);
+                var verticalPipe = MtCommon.GetOneParameter(ele, MtCommon.GetStringValue(Parameters.VerticalPipe));
+                string pipeCode = string.Empty;
+                if (verticalPipe.Equals("1-1")) {
+                    pipeCode = campus + "-" + build + "-" + level + "_" + m_SystemCode + "_" + ele.Id + "#L";
+                } else {
+                    pipeCode = campus + "-" + build + "-" + level + "_" + m_SystemCode + "_" + ele.Id;
+                }
+
+                if (!m_dic.ContainsKey(pipeCode)) {
+                    m_dic.Add(pipeCode, piameter);
                     eles.Add(ele);
                 }
                 piameter = 0;
@@ -308,7 +315,7 @@ namespace ModelDetectionPlugin {
             m_sqlite = new MtSQLite(m_sqliteFilePath);
             List<string> quarays = new List<string>();
             foreach (var item in m_dic) {
-                quarays.Add($"Update Pipe Set diameter = '{item.Value}' where code = '{item.Key}'");
+                quarays.Add($"Update Facility_Pipe Set diameter = '{item.Value}' where code = '{item.Key}'");
                 //quarays.Add($"Insert into Pipe (code,diameter) values ('{item.Key}','{item.Value}')");
             }
             m_sqlite.ExecuteNoneQuery(quarays.ToArray());
